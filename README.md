@@ -1,5 +1,5 @@
 # CS480-Backend
-To run the FastAPI server, use the commands:
+To run the FastAPI server, use the commands (image_name can be anything):
 
 ```docker build -t <image_name>```
 
