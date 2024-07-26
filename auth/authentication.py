@@ -1,11 +1,12 @@
+import os
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends, HTTPException
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "1234" # key for signing JWT tokens
-ALGORITHM = "HS256" # for encoding/decoding JWT tokens
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 # validity period of JWT in minutes
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")) # validity period of JWT in minutes
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") # tells FastAPI to expect an OAuth2 token in the Authorization header of the request.
                                                        # tokenUrl is the endpoint where users can obtain a token.
