@@ -7,3 +7,4 @@ router = APIRouter(
 @router.get("/")
 def read_root():
     return {"message": "The users API is working:D"}
+

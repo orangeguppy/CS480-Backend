@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from routers import users_routes as user_routes
 from routers import games_routes as game_routes
-from routers import token_gen_routes as token_routes
+from routers import auth_routes as token_routes
 
 app = FastAPI() # Create app instance
 

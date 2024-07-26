@@ -2,4 +2,5 @@ fastapi==0.109.0
 python-jose==3.3.0
 python-multipart==0.0.9
 pydantic==2.5.3
+requests==2.32.3
 uvicorn==0.26.0
