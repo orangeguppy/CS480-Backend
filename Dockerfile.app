@@ -3,7 +3,7 @@ WORKDIR .
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY auth ./auth
-COPY data ./data
+COPY db ./db
 COPY models ./models
 COPY routers ./routers
 COPY main.py ./

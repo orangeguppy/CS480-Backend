@@ -1,9 +1,14 @@
 from fastapi import Depends, HTTPException, APIRouter, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from auth.authentication import create_access_token, get_current_user
-from data.users import users_db
 import requests
 import os
+import bcrypt
+
+# For connecting to the users database
+from db.database import get_db
+from db import user as user_db
+from sqlalchemy.orm import Session
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -16,14 +21,15 @@ router = APIRouter(
 #---------------------------------------------------------------------------------------------------------
 # Native Login API
 #---------------------------------------------------------------------------------------------------------
-@router.get("/login/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = users_db.get(form_data.username)
+@router.post("/login/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), db_session: Session = Depends(get_db)):
+    username = form_data.username
+    result = db_session.query(user_db.User).filter(user_db.User.username == username).first()
 
-    # KIV: Implement check_credentials() to make a call to an external DB, but this is what it is for now
-    if user is None or user.password != form_data.password:
+    if result is None or bcrypt.checkpw(form_data.password.encode('utf-8'), result.password.encode('utf-8')) is False:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    access_token = create_access_token(data={"sub": user.username, "role":user.role})
+
+    access_token = create_access_token(data={"sub": result.username, "role":result.role})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/protected")

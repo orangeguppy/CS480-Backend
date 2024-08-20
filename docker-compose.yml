@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 3306
+      DATABASE_NAME: users
+      DATABASE_USER: user
+      DATABASE_PASSWORD: password
+      # Secret key for OTP verification
+      OTP_SECRET_KEY: TDH545HNHQQ6QVSQVNPMQ3ZUWKC7P5IG
+      OTP_LIFESPAN: 5 # How long the OTP token lasts
+      # Credentials for OTP email sender
+      OTP_EMAIL_SENDER: phishfinders261@gmail.com
+      OTP_EMAIL_SENDER_PW: ygly ugid esbe erao
+      # key for signing JWT tokens
+      SECRET_KEY: zqqhWif8jQNCcKFfqH9cAATjki6BjAQmQ4gozLVApdUe
+      # for encoding/decoding JWT tokens
+      ALGORITHM: HS256
+      # validity period of JWT in minutes
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      GOOGLE_CLIENT_ID: 825401649653-efc63f60t61qoue6fou7auhc2stcfj19.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: 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
+      GOOGLE_REDIRECT_URI: http://localhost:8000/auth/google/user
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: users
+      MYSQL_USER: example_user
+      MYSQL_PASSWORD: example_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

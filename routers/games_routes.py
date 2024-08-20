@@ -12,4 +12,3 @@ def read_root():
 @router.get("/secret-game")
 def read_root():
     return {"message": "Congrats, you've accessed the secret API:D"}
-
