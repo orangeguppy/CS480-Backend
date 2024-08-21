@@ -10,6 +10,10 @@ from db.database import get_db
 from db import user as user_db
 from sqlalchemy.orm import Session
 
+# To send an OTP for email verification
+from routers import otp_routes
+from models.otp import OTPRequest
+
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI")
@@ -27,7 +31,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db_session: Se
     result = db_session.query(user_db.User).filter(user_db.User.username == username).first()
 
     if result is None or bcrypt.checkpw(form_data.password.encode('utf-8'), result.password.encode('utf-8')) is False:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    
+    if result.role == "unverified":
+        # Create an OTP request
+        otp_req = OTPRequest(username=result.username)
+        # Generate an OTP and send to the user
+        otp_routes.generate_otp(otp_req, db_session=db_session)
+        raise HTTPException(status_code=403, detail="Email address not verified yet, please verify it using the OTP we've emailed you.")
 
     access_token = create_access_token(data={"sub": result.username, "role":result.role})
     return {"access_token": access_token, "token_type": "bearer"}

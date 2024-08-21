@@ -15,7 +15,7 @@ def get_all_otps(db_session: Session = Depends(get_db)):
     return otp_records
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def generate_otp_for_pw(otp_req: otp_request.OTPRequest, db_session: Session = Depends(get_db)):
+def generate_otp(otp_req: otp_request.OTPRequest, db_session: Session = Depends(get_db)):
     # Generate OTP and expiration datetime
     otp_json = otp.generate_otp()
     otp_int, expiration_datetime = otp_json["otp"], otp_json["expiration_datetime"]

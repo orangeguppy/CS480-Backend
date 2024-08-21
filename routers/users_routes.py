@@ -6,7 +6,7 @@ from models import user as user_model
 from db.database import get_db
 from db import user as user_db
 from db import otp as otp_db
-from models import pw_reset_req
+from models import pw_reset_req, acc_activation_req
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -38,7 +38,7 @@ def create_user(user: user_model.User, db_session: Session = Depends(get_db)):
     
     # Hash the password and create the new user
     hashed_password = get_password_hash(user.password)
-    new_user = user_db.User(username=user.username, password=hashed_password, role=user.role)
+    new_user = user_db.User(username=user.username, password=hashed_password, role="unverified")
     
     db_session.add(new_user)
     db_session.commit()
@@ -70,5 +70,31 @@ def update_user_password(request: pw_reset_req.UpdatePasswordRequest, db_session
         # Commit the changes to the database
         db_session.commit()
         return {"message": "Password updated successfully"}
+    else:
+        raise HTTPException(status_code=400, detail="OTP has expired")
+    
+@router.post("/activate-account", status_code=status.HTTP_201_CREATED)
+def activate_account(request: acc_activation_req.ActivateAccountRequest, db_session: Session = Depends(get_db)):
+    # Check if the user exists
+    db_user = db_session.query(user_db.User).filter(user_db.User.username == request.username).first()
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if the OTP is correct
+    user_otp = db_session.query(otp_db.OTP).filter(otp_db.OTP.username == request.username, otp_db.OTP.otp == request.otp).first()
+    if user_otp is None:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    
+    # Check that the OTP hasn't expired, only update if the expiration datetime is still valid
+    sg_timezone = timezone(timedelta(hours=8))
+    current_datetime = datetime.now(sg_timezone)
+    current_datetime = current_datetime.replace(tzinfo=None)
+    if current_datetime <= user_otp.expiration_datetime:
+        # Hash the new password and update the user
+        db_user.role = "user"
+        
+        # Commit the changes to the database
+        db_session.commit()
+        return {"message": "User account activated!"}
     else:
         raise HTTPException(status_code=400, detail="OTP has expired")
