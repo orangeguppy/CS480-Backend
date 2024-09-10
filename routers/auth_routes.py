@@ -31,14 +31,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db_session: Se
     result = db_session.query(user_db.User).filter(user_db.User.username == username).first()
 
     if result is None or bcrypt.checkpw(form_data.password.encode('utf-8'), result.password.encode('utf-8')) is False:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="You have entered an invalid username or password")
     
     if result.role == "unverified":
         # Create an OTP request
-        otp_req = OTPRequest(username=result.username)
+        otp_req = OTPRequest(username=result.username, new_acc=True)
         # Generate an OTP and send to the user
         otp_routes.generate_otp(otp_req, db_session=db_session)
-        raise HTTPException(status_code=403, detail="Email address not verified yet, please verify it using the OTP we've emailed you.")
+        raise HTTPException(status_code=403, detail="Account not verified yet, please verify it using the OTP we've emailed you")
 
     access_token = create_access_token(data={"sub": result.username, "role":result.role})
     return {"access_token": access_token, "token_type": "bearer"}

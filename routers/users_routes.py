@@ -6,7 +6,8 @@ from models import user as user_model
 from db.database import get_db
 from db import user as user_db
 from db import otp as otp_db
-from models import pw_reset_req, acc_activation_req
+from models import pw_reset_req, acc_activation_req, otp
+from routers import otp_routes
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -34,11 +35,12 @@ def create_user(user: user_model.User, db_session: Session = Depends(get_db)):
     # Check if the user already exists
     db_user = db_session.query(user_db.User).filter(user_db.User.username == user.username).first()
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(status_code=409, detail="There already exists an account with this email address")
     
     # Hash the password and create the new user
     hashed_password = get_password_hash(user.password)
     new_user = user_db.User(username=user.username, password=hashed_password, role="unverified")
+    otp_routes.generate_otp(otp.OTPRequest(username=user.username, new_acc=True), db_session=db_session)
     
     db_session.add(new_user)
     db_session.commit()
@@ -83,7 +85,7 @@ def activate_account(request: acc_activation_req.ActivateAccountRequest, db_sess
     # Check if the OTP is correct
     user_otp = db_session.query(otp_db.OTP).filter(otp_db.OTP.username == request.username, otp_db.OTP.otp == request.otp).first()
     if user_otp is None:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+        raise HTTPException(status_code=401, detail="Invalid OTP")
     
     # Check that the OTP hasn't expired, only update if the expiration datetime is still valid
     sg_timezone = timezone(timedelta(hours=8))
@@ -97,4 +99,4 @@ def activate_account(request: acc_activation_req.ActivateAccountRequest, db_sess
         db_session.commit()
         return {"message": "User account activated!"}
     else:
-        raise HTTPException(status_code=400, detail="OTP has expired")
+        raise HTTPException(status_code=401, detail="OTP has expired")

@@ -8,3 +8,4 @@ class OTP(BaseModel):
 
 class OTPRequest(BaseModel):
     username: str
+    new_acc: bool
