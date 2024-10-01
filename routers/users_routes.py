@@ -58,7 +58,7 @@ def update_user_password(request: pw_reset_req.UpdatePasswordRequest, db_session
     # Check if the OTP is correct
     user_otp = db_session.query(otp_db.OTP).filter(otp_db.OTP.username == request.username, otp_db.OTP.otp == request.otp).first()
     if user_otp is None:
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+        raise HTTPException(status_code=401, detail="Invalid OTP")
     
     # Check that the OTP hasn't expired, only update if the expiration datetime is still valid
     sg_timezone = timezone(timedelta(hours=8))
@@ -73,7 +73,7 @@ def update_user_password(request: pw_reset_req.UpdatePasswordRequest, db_session
         db_session.commit()
         return {"message": "Password updated successfully"}
     else:
-        raise HTTPException(status_code=400, detail="OTP has expired")
+        raise HTTPException(status_code=401, detail="OTP has expired")
     
 @router.post("/activate-account", status_code=status.HTTP_201_CREATED)
 def activate_account(request: acc_activation_req.ActivateAccountRequest, db_session: Session = Depends(get_db)):
