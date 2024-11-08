@@ -18,6 +18,7 @@ services:
       # Secret key for OTP verification
       OTP_SECRET_KEY: TDH545HNHQQ6QVSQVNPMQ3ZUWKC7P5IG
       OTP_LIFESPAN: 5 # How long the OTP token lasts
+      SESSION_LIFESPAN: 120 # How long the session lasts
       # Credentials for OTP email sender
       OTP_EMAIL_SENDER: phishfinders261@gmail.com
       OTP_EMAIL_SENDER_PW: ygly ugid esbe erao
