@@ -37,7 +37,7 @@ services:
     image: arm64v8/mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: users
+      MYSQL_DATABASE: cs480
       MYSQL_USER: example_user
       MYSQL_PASSWORD: example_password
     ports:
