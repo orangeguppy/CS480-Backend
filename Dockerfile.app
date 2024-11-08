@@ -1,4 +1,4 @@
-FROM python:3.11-slim-arm64
+FROM arm64v8/python:3.11-slim
 WORKDIR .
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
